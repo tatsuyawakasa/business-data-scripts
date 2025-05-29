@@ -1,0 +1,12 @@
+# .pgpassファイルのテンプレート
+# ~/.pgpassにコピーして使用してください
+# 
+# フォーマット: hostname:port:database:username:password
+# 
+# 本番環境
+milshot-prod.crr6umkkdk7n.ap-northeast-1.rds.amazonaws.com:5432:milshot:postgres:YOUR_PASSWORD_HERE
+# 
+# 注意:
+# 1. YOUR_PASSWORD_HEREを実際のパスワードに置き換えてください
+# 2. ファイルのパーミッションを600に設定してください: chmod 600 ~/.pgpass
+# 3. このテンプレートファイルにはパスワードを記入しないでください 

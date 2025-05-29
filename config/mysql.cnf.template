@@ -1,0 +1,17 @@
+# MySQL接続設定ファイルのテンプレート
+# ~/.my.cnfにコピーして使用してください
+#
+# または環境変数 MYSQL_CNF_FILE で別の場所を指定可能
+# export MYSQL_CNF_FILE="/path/to/your/mysql.cnf"
+
+[client]
+host=milshot-prod-tlnk.crr6umkkdk7n.ap-northeast-1.rds.amazonaws.com
+port=3306
+user=admin
+password=YOUR_PASSWORD_HERE
+database=milshot-prod-tlnk
+
+# 注意:
+# 1. YOUR_PASSWORD_HEREを実際のパスワードに置き換えてください
+# 2. ファイルのパーミッションを600に設定してください: chmod 600 ~/.my.cnf
+# 3. このテンプレートファイルにはパスワードを記入しないでください 

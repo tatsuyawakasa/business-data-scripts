@@ -1,0 +1,27 @@
+# データベース接続情報
+.pgpass
+*.pgpass
+config/.pgpass
+
+# CSV出力ファイル（全ディレクトリ）
+**/*.csv
+**/*.tsv
+output/
+mysql/output/
+postgresql/output/
+temp/
+
+# 一時ファイル
+*.tmp
+*.log
+
+# macOSファイル
+.DS_Store
+
+# エディタファイル
+*.swp
+*.swo
+*~
+
+# 個人設定ファイル
+config/local_* 
