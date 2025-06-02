@@ -5,10 +5,12 @@
 set -e
 
 # 引数チェック
-if [ $# -ne 1 ]; then
-    echo "使用方法: $0 OUTPUT_CSV_PATH"
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "使用方法: $0 OUTPUT_CSV_PATH [PG_SQL_FILE]"
     echo "例: $0 output/media_location_join.csv"
+    echo "例: $0 output/media_location_join.csv postgresql/queries/media_location_count_before_current_month_start.sql"
     echo "※ファイル名には自動的に最終月曜日の日付が追加されます"
+    echo "※PG_SQL_FILEが省略された場合は postgresql/queries/media_location_count.sql を使用"
     exit 1
 fi
 
@@ -32,8 +34,14 @@ echo "🔗 メディア×ロケーション JOIN処理開始"
 echo "📅 対象期間終了日: ${LAST_MONDAY} 00:00"
 
 # 固定のクエリファイル
-PG_SQL_FILE="postgresql/queries/media_location_count.sql"
+if [ $# -eq 2 ]; then
+    PG_SQL_FILE="$2"
+else
+    PG_SQL_FILE="postgresql/queries/media_location_count.sql"
+fi
 MYSQL_SQL_FILE="mysql/queries/location_custom_metadata.sql"
+
+echo "🔍 使用SQLファイル: $PG_SQL_FILE"
 
 # 一時ディレクトリ
 TEMP_DIR="temp"

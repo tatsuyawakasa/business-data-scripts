@@ -80,7 +80,12 @@ echo "---------------------------------------------------"
 echo ""
 echo "📊 レポート2: メディア活動×ロケーション情報 JOIN分析"
 echo "---------------------------------------------------"
-./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join.csv"
+echo "  📊 レポート2-1: 直近月曜日までのデータ分析"
+./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join_recent_monday.csv" postgresql/queries/media_location_count_before_most_recent_monday.sql
+
+echo ""
+echo "  📊 レポート2-2: 今月開始前までのデータ分析"
+./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join_current_month.csv" postgresql/queries/media_location_count_before_current_month_start.sql
 
 echo ""
 echo "📊 レポート3: Registration×Location情報 JOIN分析"
