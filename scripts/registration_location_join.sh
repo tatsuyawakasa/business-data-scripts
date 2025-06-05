@@ -50,22 +50,25 @@ echo "📊 Registration データ: ${PG_COUNT}件"
 echo "📊 Location 情報: ${MYSQL_COUNT}件"
 
 # ヘッダー作成
-echo "location_id,location_sid,location_name,codmon_service_id,registered_children_count" > "$OUTPUT_CSV"
+echo "location_id,location_sid,facility_name,facility_id,registered_children_count,date" > "$OUTPUT_CSV"
 
 # INNER JOIN処理実行
 echo "🔄 INNER JOIN処理中..."
 awk -F, '
 NR==FNR {
     # MySQLのlocation情報を連想配列に格納
-    # location_id をキーとして、location_sid,location_name,custom_metadata を値とする
-    mysql[$1] = $2 "," $3 "," $4
+    # カラム順序: custom_metadata,location_id,location_sid,location_name
+    # location_id($2) をキーとして、location_sid($3),location_name($4),custom_metadata($1) を値とする
+    mysql[$2] = $3 "," $4 "," $1
     next
 }
 {
     # PostgreSQLのregistrationデータを処理
-    # location_id がMySQLにも存在する場合のみ出力（INNER JOIN）
+    # 各行（location_id + date）に対してMySQLのlocation情報を結合（INNER JOIN）
     if ($1 in mysql) {
-        print $1 "," mysql[$1] "," $2
+        # location_id,registered_children_count,date の順番で
+        # location_id,location_sid,facility_name,facility_id,registered_children_count,date に変換
+        print $1 "," mysql[$1] "," $2 "," $3
     }
 }' <(tail -n +2 "$MYSQL_TEMP_CSV") <(tail -n +2 "$PG_TEMP_CSV") >> "$OUTPUT_CSV"
 

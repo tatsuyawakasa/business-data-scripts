@@ -65,18 +65,25 @@ echo "📊 メディア活動データ: ${PG_COUNT}件"
 echo "📊 ロケーション情報: ${MYSQL_COUNT}件"
 
 # ヘッダー作成（tlnk_shooting_mode別集計対応）
-echo "location_id,location_sid,location_name,codmon_service_id,manual_upload_count,app_upload_count,total_count" > "$OUTPUT_CSV"
+echo "location_id,location_sid,facility_name,facility_id,manual_upload_count,app_upload_count,total_count,date" > "$OUTPUT_CSV"
 
 # JOIN処理実行
 echo "🔄 JOIN処理中..."
 awk -F, '
 NR==FNR {
-    mysql[$1] = $2 "," $3 "," $4
+    # MySQLのlocation情報を連想配列に格納
+    # カラム順序: custom_metadata,location_id,location_sid,location_name
+    # location_id($2) をキーとして、location_sid($3),location_name($4),custom_metadata($1) を値とする
+    mysql[$2] = $3 "," $4 "," $1
     next
 }
 {
+    # PostgreSQLのメディアデータを処理
+    # 各行（location_id + date）に対してMySQLのlocation情報を結合
     if ($1 in mysql) {
-        print $1 "," mysql[$1] "," $2 "," $3 "," $4
+        # location_id,manual_upload_count,app_upload_count,total_count,date の順番で
+        # location_id,location_sid,facility_name,facility_id,manual_upload_count,app_upload_count,total_count,date に変換
+        print $1 "," mysql[$1] "," $2 "," $3 "," $4 "," $5
     }
 }' <(tail -n +2 "$MYSQL_TEMP_CSV") <(tail -n +2 "$PG_TEMP_CSV") >> "$OUTPUT_CSV"
 

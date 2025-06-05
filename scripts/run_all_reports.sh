@@ -78,17 +78,17 @@ echo "---------------------------------------------------"
 ./mysql/scripts/to_csv.sh -f mysql/queries/camera_count_by_location.sql "${OUTPUT_DIR}/codmon_app_login_count_${LAST_MONDAY}.csv"
 
 echo ""
-echo "📊 レポート2: メディア活動×ロケーション情報 JOIN分析"
+echo "📊 レポート2: CoDMONサービス ロケーション情報一覧"
 echo "---------------------------------------------------"
-echo "  📊 レポート2-1: 直近月曜日までのデータ分析"
-./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join_recent_monday.csv" postgresql/queries/media_location_count_before_most_recent_monday.sql
+./mysql/scripts/to_csv.sh -f mysql/queries/location_custom_metadata.sql "${OUTPUT_DIR}/codmon_location_info_${LAST_MONDAY}.csv"
 
 echo ""
-echo "  📊 レポート2-2: 今月開始前までのデータ分析"
-./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join_current_month.csv" postgresql/queries/media_location_count_before_current_month_start.sql
+echo "📊 レポート3: メディア活動×ロケーション情報 JOIN分析"
+echo "---------------------------------------------------"
+./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join.csv"
 
 echo ""
-echo "📊 レポート3: Registration×Location情報 JOIN分析"
+echo "📊 レポート4: Registration×Location情報 JOIN分析"
 echo "---------------------------------------------------"
 ./scripts/registration_location_join.sh "${OUTPUT_DIR}/registration_location_join.csv"
 
