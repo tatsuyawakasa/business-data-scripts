@@ -3,8 +3,8 @@
 SELECT 
     l.location_id,
     l.location_sid,
-    l.location_name,
-    lcm.custom_metadata as codmon_service_id,
+    l.location_name as facility_name,
+    lcm.custom_metadata as facility_id,
     COUNT(c.camera_id) as app_login_count
 FROM camera c 
 INNER JOIN location l ON c.location_id = l.location_id 
