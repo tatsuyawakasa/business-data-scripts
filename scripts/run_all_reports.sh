@@ -93,6 +93,11 @@ echo "---------------------------------------------------"
 ./scripts/registration_location_join.sh "${OUTPUT_DIR}/registration_location_join.csv"
 
 echo ""
+echo "📊 レポート5: Child Anonymous Group 分析"
+echo "---------------------------------------------------"
+./scripts/child_anonymous_analysis.sh "${OUTPUT_DIR}/child_anonymous_analysis_${LAST_MONDAY}.csv"
+
+echo ""
 echo "================================================"
 echo "✅ 全レポート生成完了!"
 echo "📁 出力ディレクトリ: $OUTPUT_DIR"
