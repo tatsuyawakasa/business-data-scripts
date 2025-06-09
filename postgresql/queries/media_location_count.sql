@@ -1,5 +1,5 @@
 -- location_id別のレコード数を取得するクエリ（tlnk_shooting_mode別集計付き）
--- 作成日時でフィルタリング（2025-05-21 15:00以降）
+-- 前週1週間のデータを抽出（月曜日から日曜日まで）
 -- 日単位でグループ化、dateカラムを右端に配置
 
 SELECT 
@@ -9,7 +9,7 @@ SELECT
     COUNT(*) as total_count,
     DATE(created_datetime) as date
 FROM media 
-WHERE created_datetime >= '2025-05-21 15:00:00'
+WHERE created_datetime >= date_trunc('week', CURRENT_DATE - INTERVAL '1 week')::timestamp
   AND created_datetime < date_trunc('week', CURRENT_DATE)::timestamp
 GROUP BY location_id, DATE(created_datetime)
 ORDER BY location_id, DATE(created_datetime); 
