@@ -15,7 +15,7 @@ fi
 QUERY="$1"
 
 # データベース接続情報
-DB_HOST="milshot-prod.crr6umkkdk7n.ap-northeast-1.rds.amazonaws.com"
+DB_HOST="milshot-prod-v2.crr6umkkdk7n.ap-northeast-1.rds.amazonaws.com"
 DB_USER="postgres"
 DB_NAME="milshot"
 
