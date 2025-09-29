@@ -14,14 +14,21 @@ if [ $# -lt 1 ] || [ $# -gt 2 ]; then
     exit 1
 fi
 
-# 最終月曜日の日付を計算（YYYY-MM-DD形式）
-# macOS(BSD)とLinux(GNU)の両方に対応
-if date -v-1w >/dev/null 2>&1; then
-    # macOS (BSD date)
-    LAST_MONDAY=$(date -v-$(date +%u)d -v+1d +%Y-%m-%d)
+# 日付計算（月末締めモード対応）
+if [ "${MONTH_END_MODE}" = "true" ]; then
+    # 月末締めモード：2025-07-01を使用
+    LAST_MONDAY="2025-07-01"
+    echo "🗓️  月末締めモード: ${LAST_MONDAY} 0時まで集計"
 else
-    # Linux (GNU date)
-    LAST_MONDAY=$(date -d "last monday" +%Y-%m-%d)
+    # 通常モード：最終月曜日の日付を計算（YYYY-MM-DD形式）
+    # macOS(BSD)とLinux(GNU)の両方に対応
+    if date -v-1w >/dev/null 2>&1; then
+        # macOS (BSD date)
+        LAST_MONDAY=$(date -v-$(date +%u)d -v+1d +%Y-%m-%d)
+    else
+        # Linux (GNU date)
+        LAST_MONDAY=$(date -d "last monday" +%Y-%m-%d)
+    fi
 fi
 
 # 出力ファイルパスに日付を含める

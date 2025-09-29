@@ -75,27 +75,32 @@ mkdir -p "$OUTPUT_DIR"
 
 echo "📊 レポート1: CoDMONサービス アプリログインカウント集計"
 echo "---------------------------------------------------"
-./mysql/scripts/to_csv.sh -f mysql/queries/camera_count_by_location.sql "${OUTPUT_DIR}/codmon_app_login_count_${LAST_MONDAY}.csv"
+./mysql/scripts/to_csv.sh -f mysql/queries/camera_count_by_location.sql "${OUTPUT_DIR}/アプリログイン数_${LAST_MONDAY}.csv"
 
 echo ""
 echo "📊 レポート2: CoDMONサービス ロケーション情報一覧"
 echo "---------------------------------------------------"
-./mysql/scripts/to_csv.sh -f mysql/queries/location_custom_metadata.sql "${OUTPUT_DIR}/codmon_location_info_${LAST_MONDAY}.csv"
+./mysql/scripts/to_csv.sh -f mysql/queries/location_custom_metadata.sql "${OUTPUT_DIR}/location_info_${LAST_MONDAY}.csv"
 
 echo ""
-echo "📊 レポート3: メディア活動×ロケーション情報 JOIN分析"
+echo "📊 レポート3a: メディア活動×ロケーション情報 JOIN分析（週次）"
 echo "---------------------------------------------------"
-./scripts/media_location_join.sh "${OUTPUT_DIR}/media_location_join.csv"
+./scripts/media_location_join.sh "${OUTPUT_DIR}/アップロード数_${LAST_MONDAY}.csv"
+
+echo ""
+echo "📊 レポート3b: メディア活動×ロケーション情報 JOIN分析（月末締め）"
+echo "---------------------------------------------------"
+MONTH_END_MODE=true ./scripts/media_location_join.sh "${OUTPUT_DIR}/アップロード数.csv" "postgresql/queries/media_location_count_month_end.sql"
 
 echo ""
 echo "📊 レポート4: Registration×Location情報 JOIN分析"
 echo "---------------------------------------------------"
-./scripts/registration_location_join.sh "${OUTPUT_DIR}/registration_location_join.csv"
+./scripts/registration_location_join.sh "${OUTPUT_DIR}/顔認識こども登録数_${LAST_MONDAY}.csv"
 
 echo ""
 echo "📊 レポート5: Child Anonymous Group 分析"
 echo "---------------------------------------------------"
-./scripts/child_anonymous_analysis.sh "${OUTPUT_DIR}/child_anonymous_analysis_${LAST_MONDAY}.csv"
+./scripts/child_anonymous_analysis.sh "${OUTPUT_DIR}/所属クラス未登録こども数_${LAST_MONDAY}.csv"
 
 echo ""
 echo "================================================"
