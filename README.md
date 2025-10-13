@@ -236,6 +236,14 @@ mysql -e "SELECT 1;"
 - PostgreSQL用: `postgresql/queries/` フォルダ
 - MySQL用: `mysql/queries/` フォルダ
 
+### 文字コードについて
+出力されるCSVファイルは **UTF-8 with BOM（Byte Order Mark）** 形式で保存される。これにより、以下のソフトウェアで日本語が文字化けせずに表示される：
+- Mac Numbers
+- Microsoft Excel
+- Google スプレッドシート
+
+BOMとは、ファイルの先頭に付加される特殊なマーカー（`EF BB BF`）で、ファイルがUTF-8であることを示す。
+
 ## トラブルシューティング
 
 ### よくあるエラーと対処法

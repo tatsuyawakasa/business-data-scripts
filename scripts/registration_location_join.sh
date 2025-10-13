@@ -50,7 +50,9 @@ echo "📊 Registration データ: ${PG_COUNT}件"
 echo "📊 Location 情報: ${MYSQL_COUNT}件"
 
 # ヘッダー作成
-echo "location_id,location_sid,facility_name,facility_id,registered_children_count,date" > "$OUTPUT_CSV"
+# BOM（Byte Order Mark）を追加してUTF-8 with BOMに変換
+printf '\xEF\xBB\xBF' > "$OUTPUT_CSV"
+echo "location_id,location_sid,facility_name,facility_id,registered_children_count,date" >> "$OUTPUT_CSV"
 
 # INNER JOIN処理実行
 echo "🔄 INNER JOIN処理中..."

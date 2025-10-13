@@ -53,13 +53,23 @@ echo "出力先: $OUTPUT_FILE"
 # SQLクエリの実行とCSV出力
 # 絶対パスに変換（ファイルが存在しない場合はディレクトリ作成後に処理）
 ABSOLUTE_OUTPUT_FILE=$(cd "$(dirname "$OUTPUT_FILE")" && pwd)/$(basename "$OUTPUT_FILE")
-psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c "\copy ($QUERY) TO '$ABSOLUTE_OUTPUT_FILE' WITH CSV HEADER;"
+
+# 一時ファイルにCSVを出力
+TEMP_FILE="${ABSOLUTE_OUTPUT_FILE}.tmp"
+psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c "\copy ($QUERY) TO '$TEMP_FILE' WITH CSV HEADER;"
 
 if [ $? -eq 0 ]; then
+    # BOM（Byte Order Mark）を追加してUTF-8 with BOMに変換
+    # MacのNumbersやExcelで文字化けを防ぐため
+    printf '\xEF\xBB\xBF' > "$ABSOLUTE_OUTPUT_FILE"
+    cat "$TEMP_FILE" >> "$ABSOLUTE_OUTPUT_FILE"
+    rm -f "$TEMP_FILE"
+    
     echo "✅ 正常に完了しました"
     echo "📄 ファイルサイズ: $(ls -lh "$OUTPUT_FILE" | awk '{print $5}')"
     echo "📊 レコード数: $(tail -n +2 "$OUTPUT_FILE" | wc -l | tr -d ' ')件"
 else
     echo "❌ エラーが発生しました"
+    rm -f "$TEMP_FILE"
     exit 1
 fi 

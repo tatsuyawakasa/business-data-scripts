@@ -51,8 +51,12 @@ echo "📊 出力先: $OUTPUT_FILE"
 TEMP_OUTPUT=$(mktemp)
 mysql -e "$QUERY" > "$TEMP_OUTPUT"
 
-# タブ区切りをカンマ区切りに変換してCSVファイルに保存
-cat "$TEMP_OUTPUT" | tr '\t' ',' > "$OUTPUT_FILE"
+# BOM（Byte Order Mark）を追加してUTF-8 with BOMに変換
+# MacのNumbersやExcelで文字化けを防ぐため
+printf '\xEF\xBB\xBF' > "$OUTPUT_FILE"
+
+# タブ区切りをカンマ区切りに変換してCSVファイルに追加
+cat "$TEMP_OUTPUT" | tr '\t' ',' >> "$OUTPUT_FILE"
 
 # 一時ファイルを削除
 rm -f "$TEMP_OUTPUT"
