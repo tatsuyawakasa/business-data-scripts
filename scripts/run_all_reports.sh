@@ -150,4 +150,16 @@ fi
 
 echo ""
 echo "================================================"
+echo "🔒 VPN接続を切断中..."
+echo "---------------------------------------------------"
+
+# VPN切断スクリプトを実行
+if [ -f "$SCRIPT_DIR/disconnect_vpn.sh" ]; then
+    "$SCRIPT_DIR/disconnect_vpn.sh"
+else
+    echo "⚠️  disconnect_vpn.shが見つかりません。VPN接続は維持されます"
+fi
+
+echo ""
+echo "================================================"
 echo "🎉 すべての処理が完了しました!" 
