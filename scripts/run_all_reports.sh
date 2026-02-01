@@ -53,6 +53,17 @@ check_vpn_connection() {
 echo "🚀 CoDMONサービス レポート生成開始"
 echo "================================================"
 echo "📁 実行ディレクトリ: $PROJECT_ROOT"
+echo ""
+
+# AWS VPN Client自動接続を試みる
+echo "🔒 AWS VPN Client自動接続を試みます..."
+if [ -f "$SCRIPT_DIR/connect_vpn.sh" ]; then
+    "$SCRIPT_DIR/connect_vpn.sh"
+    echo ""
+else
+    echo "⚠️  connect_vpn.shが見つかりません。手動でVPN接続してください"
+    echo ""
+fi
 
 # VPN接続チェックを実行
 check_vpn_connection
@@ -108,4 +119,35 @@ echo "✅ 全レポート生成完了!"
 echo "📁 出力ディレクトリ: $OUTPUT_DIR"
 echo ""
 echo "📋 生成されたファイル:"
-ls -la "${OUTPUT_DIR}"/*"${LAST_MONDAY}"* 2>/dev/null || echo "（日付付きファイルなし）" 
+ls -la "${OUTPUT_DIR}"/*"${LAST_MONDAY}"* 2>/dev/null || echo "（日付付きファイルなし）"
+
+echo ""
+echo "================================================"
+echo "📤 Google Spreadsheetsへの同期開始"
+echo "---------------------------------------------------"
+
+# Sheet Mirrorプロジェクトのパス
+SHEET_MIRROR_DIR="/Users/t_wakasa/Cursor/projects/sheet-mirror"
+
+# Sheet Mirrorが存在するか確認
+if [ ! -d "$SHEET_MIRROR_DIR" ]; then
+    echo "❌ エラー: Sheet Mirrorプロジェクトが見つかりません: $SHEET_MIRROR_DIR"
+    exit 1
+fi
+
+# Sheet Mirrorを実行
+cd "$SHEET_MIRROR_DIR"
+npm start
+
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "✅ Google Spreadsheetsへの同期完了!"
+else
+    echo ""
+    echo "❌ エラー: Google Spreadsheetsへの同期に失敗しました"
+    exit 1
+fi
+
+echo ""
+echo "================================================"
+echo "🎉 すべての処理が完了しました!" 
