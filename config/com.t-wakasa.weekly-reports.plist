@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.t-wakasa.weekly-reports</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/bin/osascript</string>
+		<string>-e</string>
+		<string>tell application "iTerm2"</string>
+		<string>-e</string>
+		<string>activate</string>
+		<string>-e</string>
+		<string>create window with default profile command "/Users/t_wakasa/Cursor/projects/business-data-scripts/scripts/run_all_reports_scheduled.sh"</string>
+		<string>-e</string>
+		<string>end tell</string>
+	</array>
+
+	<key>StandardErrorPath</key>
+	<string>/Users/t_wakasa/Cursor/projects/business-data-scripts/logs/launchd_error.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/t_wakasa/Cursor/projects/business-data-scripts/logs/launchd_output.log</string>
+
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Weekday</key>
+		<integer>1</integer>
+		<key>Hour</key>
+		<integer>0</integer>
+		<key>Minute</key>
+		<integer>1</integer>
+	</dict>
+
+	<key>WorkingDirectory</key>
+	<string>/Users/t_wakasa/Cursor/projects/business-data-scripts</string>
+</dict>
+</plist>
