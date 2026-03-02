@@ -12,6 +12,26 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # プロジェクトルートに移動
 cd "$PROJECT_ROOT"
 
+# Tailscale初期状態の記録
+TAILSCALE_WAS_RUNNING=false
+if [ -x /usr/local/bin/tailscale ]; then
+    TS_STATE=$(/usr/local/bin/tailscale status --json 2>/dev/null \
+        | python3 -c "import json,sys; print(json.load(sys.stdin).get('BackendState',''))" 2>/dev/null || true)
+    if [ "$TS_STATE" = "Running" ]; then
+        TAILSCALE_WAS_RUNNING=true
+    fi
+fi
+
+# EXIT trap: 異常終了時もTailscaleを復元
+cleanup() {
+    if [ "$TAILSCALE_WAS_RUNNING" = "true" ]; then
+        echo ""
+        echo "🔄 Tailscaleを復元します..."
+        "$SCRIPT_DIR/manage_tailscale.sh" up || true
+    fi
+}
+trap cleanup EXIT
+
 # VPN接続チェック関数
 check_vpn_connection() {
     echo "🔒 VPN接続チェック中..."
@@ -54,6 +74,12 @@ echo "🚀 CoDMONサービス レポート生成開始"
 echo "================================================"
 echo "📁 実行ディレクトリ: $PROJECT_ROOT"
 echo ""
+
+# Tailscale一時停止（AWS VPNとの競合回避）
+if [ "$TAILSCALE_WAS_RUNNING" = "true" ]; then
+    "$SCRIPT_DIR/manage_tailscale.sh" down
+    echo ""
+fi
 
 # AWS VPN Client自動接続を試みる
 echo "🔒 AWS VPN Client自動接続を試みます..."
@@ -158,6 +184,13 @@ if [ -f "$SCRIPT_DIR/disconnect_vpn.sh" ]; then
     "$SCRIPT_DIR/disconnect_vpn.sh"
 else
     echo "⚠️  disconnect_vpn.shが見つかりません。VPN接続は維持されます"
+fi
+
+# Tailscale復元（明示的復元。EXIT trapでもidempotentに実行される）
+if [ "$TAILSCALE_WAS_RUNNING" = "true" ]; then
+    echo ""
+    echo "🔄 Tailscaleを復元します..."
+    "$SCRIPT_DIR/manage_tailscale.sh" up
 fi
 
 echo ""
