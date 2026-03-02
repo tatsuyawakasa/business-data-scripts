@@ -6,6 +6,10 @@
 # Homebrew 環境の PATH を設定
 export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/opt/mysql-client/bin:/opt/homebrew/opt/postgresql@16/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
+# ロケール設定（launchd環境ではLANG未設定のため、MySQL日本語が文字化けする対策）
+export LANG=ja_JP.UTF-8
+export LC_ALL=ja_JP.UTF-8
+
 # HOME を明示的に設定（.pgpass, .my.cnf の参照に必要）
 export HOME="/Users/t_wakasa"
 

@@ -49,7 +49,7 @@ echo "📊 出力先: $OUTPUT_FILE"
 # ~/.my.cnfファイルから接続情報を自動取得
 # タブ区切りで出力してからカンマ区切りに変換
 TEMP_OUTPUT=$(mktemp)
-mysql -e "$QUERY" > "$TEMP_OUTPUT"
+mysql --default-character-set=utf8mb4 -e "$QUERY" > "$TEMP_OUTPUT"
 
 # BOM（Byte Order Mark）を追加してUTF-8 with BOMに変換
 # MacのNumbersやExcelで文字化けを防ぐため
