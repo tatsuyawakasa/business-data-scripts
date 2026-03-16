@@ -18,6 +18,9 @@ LOG_DIR="/Users/t_wakasa/Cursor/projects/business-data-scripts/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/scheduled_report.log"
 
+# スリープ防止（スクリプト終了時に自動解除）
+caffeinate -dims -w $$ &
+
 echo "========================================"
 echo "スケジュール実行開始: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "========================================"
