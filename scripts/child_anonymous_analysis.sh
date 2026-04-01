@@ -24,8 +24,15 @@ echo ""
 # 出力ディレクトリを作成
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
-# MySQL実行とCSV出力
-./mysql/scripts/to_csv.sh -f mysql/queries/child_anonymous_analysis.sql "$OUTPUT_FILE"
+# MySQL実行とCSV出力（除外フィルタ対応）
+if [ -n "$EXCLUDE_SQL_CLAUSE" ]; then
+    QUERY=$(grep -v '^--' mysql/queries/child_anonymous_analysis.sql | grep -v '^$' | tr '\n' ' ' | sed 's/;/ /g' | sed 's/  */ /g' | sed 's/^ *//' | sed 's/ *$//')
+    QUERY=$(echo "$QUERY" | sed "s|GROUP BY|${EXCLUDE_SQL_CLAUSE} GROUP BY|")
+    echo "📄 SQLファイルを読み込み（除外フィルタ適用）: mysql/queries/child_anonymous_analysis.sql"
+    ./mysql/scripts/to_csv.sh "$QUERY" "$OUTPUT_FILE"
+else
+    ./mysql/scripts/to_csv.sh -f mysql/queries/child_anonymous_analysis.sql "$OUTPUT_FILE"
+fi
 
 echo ""
 echo "✅ Child Anonymous Group 分析完了!"

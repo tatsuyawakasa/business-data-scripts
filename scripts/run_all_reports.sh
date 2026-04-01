@@ -12,6 +12,56 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # プロジェクトルートに移動
 cd "$PROJECT_ROOT"
 
+# 除外ファシリティIDリストの読み込み
+load_excluded_facility_ids() {
+    local config_file="$PROJECT_ROOT/config/excluded_facility_ids.conf"
+    EXCLUDED_FACILITY_IDS_CSV=""
+    EXCLUDE_SQL_CLAUSE=""
+
+    if [ ! -f "$config_file" ]; then
+        return
+    fi
+
+    local ids
+    ids=$(grep -v '^#' "$config_file" | grep -v '^[[:space:]]*$' | tr -d ' ' | tr -d '\r')
+    if [ -z "$ids" ]; then
+        return
+    fi
+
+    EXCLUDED_FACILITY_IDS_CSV=$(echo "$ids" | paste -sd, -)
+    local sql_in_list
+    sql_in_list=$(echo "$ids" | sed "s/.*/'&'/" | paste -sd, -)
+    EXCLUDE_SQL_CLAUSE="AND lcm.custom_metadata NOT IN (${sql_in_list})"
+
+    export EXCLUDED_FACILITY_IDS_CSV
+    export EXCLUDE_SQL_CLAUSE
+}
+
+# 除外フィルタ付きMySQL to_csv実行
+mysql_to_csv_with_exclusion() {
+    local sql_file="$1"
+    local output_file="$2"
+
+    if [ -n "$EXCLUDE_SQL_CLAUSE" ]; then
+        local query
+        query=$(grep -v '^--' "$sql_file" | grep -v '^$' | tr '\n' ' ' | sed 's/;/ /g' | sed 's/  */ /g' | sed 's/^ *//' | sed 's/ *$//')
+        # GROUP BYまたはORDER BYの前に除外条件を挿入
+        if echo "$query" | grep -q "GROUP BY"; then
+            query=$(echo "$query" | sed "s|GROUP BY|${EXCLUDE_SQL_CLAUSE} GROUP BY|")
+        elif echo "$query" | grep -q "ORDER BY"; then
+            query=$(echo "$query" | sed "s|ORDER BY|${EXCLUDE_SQL_CLAUSE} ORDER BY|")
+        else
+            query="${query} ${EXCLUDE_SQL_CLAUSE}"
+        fi
+        echo "📄 SQLファイルを読み込み（除外フィルタ適用）: $sql_file"
+        ./mysql/scripts/to_csv.sh "$query" "$output_file"
+    else
+        ./mysql/scripts/to_csv.sh -f "$sql_file" "$output_file"
+    fi
+}
+
+load_excluded_facility_ids
+
 # Tailscale初期状態の記録
 TAILSCALE_WAS_RUNNING=false
 if [ -x /usr/local/bin/tailscale ]; then
@@ -73,6 +123,9 @@ check_vpn_connection() {
 echo "🚀 CoDMONサービス レポート生成開始"
 echo "================================================"
 echo "📁 実行ディレクトリ: $PROJECT_ROOT"
+if [ -n "$EXCLUDED_FACILITY_IDS_CSV" ]; then
+    echo "🚫 除外ファシリティID: ${EXCLUDED_FACILITY_IDS_CSV}"
+fi
 echo ""
 
 # Tailscale一時停止（AWS VPNとの競合回避）
@@ -112,12 +165,12 @@ mkdir -p "$OUTPUT_DIR"
 
 echo "📊 レポート1: CoDMONサービス アプリログインカウント集計"
 echo "---------------------------------------------------"
-./mysql/scripts/to_csv.sh -f mysql/queries/camera_count_by_location.sql "${OUTPUT_DIR}/アプリログイン数_${LAST_MONDAY}.csv"
+mysql_to_csv_with_exclusion mysql/queries/camera_count_by_location.sql "${OUTPUT_DIR}/アプリログイン数_${LAST_MONDAY}.csv"
 
 echo ""
 echo "📊 レポート2: CoDMONサービス ロケーション情報一覧"
 echo "---------------------------------------------------"
-./mysql/scripts/to_csv.sh -f mysql/queries/location_custom_metadata.sql "${OUTPUT_DIR}/location_info_${LAST_MONDAY}.csv"
+mysql_to_csv_with_exclusion mysql/queries/location_custom_metadata.sql "${OUTPUT_DIR}/location_info_${LAST_MONDAY}.csv"
 
 echo ""
 echo "📊 レポート3a: メディア活動×ロケーション情報 JOIN分析（週次）"

@@ -57,9 +57,16 @@ echo "location_id,location_sid,facility_name,facility_id,registered_children_cou
 # INNER JOIN処理実行
 echo "🔄 INNER JOIN処理中..."
 awk -F, '
+BEGIN {
+    # 除外ファシリティIDリストを読み込み
+    n = split(ENVIRON["EXCLUDED_FACILITY_IDS_CSV"], arr, ",")
+    for (i = 1; i <= n; i++) excluded[arr[i]] = 1
+}
 NR==FNR {
     # MySQLのlocation情報を連想配列に格納
     # カラム順序: custom_metadata,location_id,location_sid,location_name
+    # 除外リストに含まれるファシリティIDはスキップ
+    if ($1 in excluded) next
     # location_id($2) をキーとして、location_sid($3),location_name($4),custom_metadata($1) を値とする
     mysql[$2] = $3 "," $4 "," $1
     next
