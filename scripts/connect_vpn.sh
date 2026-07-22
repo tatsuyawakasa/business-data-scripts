@@ -41,17 +41,28 @@ echo "🔒 AWS VPN Client 'develop'プロファイルに接続中..."
 OPENVPN_BIN="/opt/homebrew/sbin/openvpn"
 OVPN_CONFIG="$HOME/.config/AWSVPNClient/OpenVpnConfigs/develop"
 
+# ログはユーザー所有のファイルに書く。
+# /tmp に root 直書きさせると 600/root になり、失敗時に一般ユーザーが読めず
+# 原因調査ができない（2026-07-20 の失敗時に実際に発生）。
+# 先に touch しておけば root の openvpn は既存 inode に O_TRUNC で書くため
+# 所有権が t_wakasa のまま保たれる。
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VPN_LOG_DIR="$SCRIPT_DIR/../logs"
+mkdir -p "$VPN_LOG_DIR"
+OVPN_LOG="$VPN_LOG_DIR/openvpn_connect.log"
+
+# 戻り値: 0=接続成功 / 1=タイムアウト（リトライ価値あり） / 2=CLI利用不可
 try_openvpn_cli() {
     if [ ! -x "$OPENVPN_BIN" ]; then
         echo "ℹ️  OpenVPN CLIが未インストール（GUI方式にフォールバック）"
-        return 1
+        return 2
     fi
 
     if ! sudo -n "$OPENVPN_BIN" --version >/dev/null 2>&1; then
         echo "ℹ️  OpenVPN CLIのsudo権限なし（GUI方式にフォールバック）"
         echo "   セットアップ: sudo visudo -f /etc/sudoers.d/openvpn"
         echo "   内容: $USER ALL=(ALL) NOPASSWD: $OPENVPN_BIN"
-        return 1
+        return 2
     fi
 
     echo "🔌 OpenVPN CLI方式で接続を試みます..."
@@ -60,19 +71,23 @@ try_openvpn_cli() {
     sudo -n killall openvpn 2>/dev/null || true
     sleep 1
 
+    touch "$OVPN_LOG"
+    chmod 644 "$OVPN_LOG"
+
     # バックグラウンドでopenvpn起動
-    sudo -n "$OPENVPN_BIN" --config "$OVPN_CONFIG" --daemon --log /tmp/openvpn_connect.log 2>&1
+    sudo -n "$OPENVPN_BIN" --config "$OVPN_CONFIG" --daemon --log "$OVPN_LOG" 2>&1
 
     if [ $? -ne 0 ]; then
         echo "⚠️  OpenVPN CLI起動エラー"
-        cat /tmp/openvpn_connect.log 2>/dev/null | tail -5
+        tail -5 "$OVPN_LOG" 2>/dev/null
         return 1
     fi
 
     echo "⏳ OpenVPN接続確立を待機中..."
 
-    # VPN接続を確認（最大90秒待機）
-    MAX_WAIT=90
+    # VPN接続を確認（最大180秒待機）
+    # 好条件でも確立に60秒程度かかるため、90秒では深夜スリープ復帰時に不足する
+    MAX_WAIT=180
     WAIT_COUNT=0
 
     while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
@@ -93,15 +108,26 @@ try_openvpn_cli() {
     # 失敗時はopenvpnプロセスを停止
     sudo -n killall openvpn 2>/dev/null || true
 
-    # ログの最後を表示
-    echo "📋 OpenVPNログ（最新5行）:"
-    cat /tmp/openvpn_connect.log 2>/dev/null | tail -5
+    # ログの最後を表示し、後日調査できるようタイムスタンプ付きで退避
+    echo "📋 OpenVPNログ（最新10行）:"
+    tail -10 "$OVPN_LOG" 2>/dev/null
+    FAIL_LOG="$VPN_LOG_DIR/openvpn_fail_$(date +%Y%m%d_%H%M%S).log"
+    cp "$OVPN_LOG" "$FAIL_LOG" 2>/dev/null && echo "📁 失敗ログを退避: $FAIL_LOG"
     return 1
 }
 
-# OpenVPN CLIを試行
-if try_openvpn_cli; then
+# OpenVPN CLIを試行（タイムアウト時は1回だけリトライ）
+try_openvpn_cli
+CLI_RESULT=$?
+if [ $CLI_RESULT -eq 0 ]; then
     exit 0
+fi
+if [ $CLI_RESULT -eq 1 ]; then
+    echo "🔁 OpenVPN CLI接続を再試行します（2回目/全2回）..."
+    sleep 10
+    if try_openvpn_cli; then
+        exit 0
+    fi
 fi
 
 echo ""
