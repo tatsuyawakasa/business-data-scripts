@@ -190,7 +190,7 @@ echo "---------------------------------------------------"
 echo ""
 echo "📊 レポート5: Child Anonymous Group 分析"
 echo "---------------------------------------------------"
-./scripts/child_anonymous_analysis.sh "${OUTPUT_DIR}/所属クラス未登録こども数_${LAST_MONDAY}.csv"
+./scripts/child_anonymous_analysis.sh "${OUTPUT_DIR}/こども名前登録数_${LAST_MONDAY}.csv"
 
 echo ""
 echo "================================================"
